@@ -1,0 +1,102 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test on Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Verify there are no runtime dependencies
+        run: |
+          python -c "import tomllib" 2>/dev/null || pip install tomli
+          python - <<'PY'
+          try:
+              import tomllib
+          except ModuleNotFoundError:
+              import tomli as tomllib
+          with open("pyproject.toml", "rb") as fh:
+              data = tomllib.load(fh)
+          deps = data["project"].get("dependencies") or []
+          assert deps == [], f"expected zero runtime dependencies, found {deps}"
+          print("OK: zero runtime dependencies")
+          PY
+
+      - name: Install the package
+        run: pip install -e .
+
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Run doctests
+        run: |
+          python - <<'PY'
+          import doctest
+          from shopify_catalog_scraper import client, filters, html_text, models
+          failures = 0
+          for module in (html_text, models, client, filters):
+              result = doctest.testmod(module, verbose=False)
+              print(module.__name__, "failed:", result.failed, "attempted:", result.attempted)
+              failures += result.failed
+          raise SystemExit(1 if failures else 0)
+          PY
+
+      - name: Smoke-test the console script
+        run: |
+          shopify-scraper --version
+          shopify-scraper --help > /dev/null
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Ruff check
+        run: ruff check src tests
+
+      - name: Ruff format check
+        run: ruff format --diff src tests || true
+
+  build:
+    name: Build distribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build sdist and wheel
+        run: |
+          pip install build twine
+          python -m build
+          twine check dist/*
