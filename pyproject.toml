@@ -1,0 +1,71 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "shopify-catalog-scraper"
+version = "1.0.0"
+description = "Export any Shopify store's full product catalog to CSV, JSON, JSONL, Markdown or AI-ready text. Zero dependencies."
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+authors = [{ name = "Samer" }]
+keywords = [
+    "shopify",
+    "scraper",
+    "ecommerce",
+    "product-catalog",
+    "csv-export",
+    "web-scraping",
+    "price-monitoring",
+    "rag",
+    "knowledge-base",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Topic :: Internet :: WWW/HTTP :: Indexing/Search",
+    "Topic :: Office/Business :: Financial",
+    "Topic :: Text Processing :: Markup :: HTML",
+    "Typing :: Typed",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/samerss/shopify-catalog-scraper"
+Repository = "https://github.com/samerss/shopify-catalog-scraper"
+Issues = "https://github.com/samerss/shopify-catalog-scraper/issues"
+Changelog = "https://github.com/samerss/shopify-catalog-scraper/blob/main/CHANGELOG.md"
+
+[project.scripts]
+shopify-scraper = "shopify_catalog_scraper.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+shopify_catalog_scraper = ["py.typed"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py38"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+# The pyupgrade ("UP") rules are deliberately not enabled: this package supports
+# Python 3.8, so it uses typing.Optional rather than PEP 604 unions and str.format
+# rather than f-strings, consistently throughout.
+select = ["E", "F", "W", "I", "B", "C4"]
+ignore = ["E501", "B905"]
